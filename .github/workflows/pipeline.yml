@@ -10,6 +10,10 @@ jobs:
   mlops-pipeline:
     runs-on: ubuntu-latest
 
+    # Give the ML script access to the Hugging Face token
+    env:
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+
     steps:
 
       # 1. Checkout the GitHub repository
@@ -28,7 +32,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # 4. Verify deployment files
+      # 4. Run the complete ML pipeline
+      - name: Run ML pipeline
+        run: |
+          python ml_pipeline.py
+
+      # 5. Verify deployment files
       - name: Verify deployment files
         run: |
           test -f app.py
@@ -36,18 +45,19 @@ jobs:
           test -f requirements.txt
           echo "Deployment files verified successfully."
 
-      # 5. Verify Python application
-      - name: Validate application
+      # 6. Verify Python applications
+      - name: Validate applications
         run: |
+          python -m py_compile ml_pipeline.py
           python -m py_compile app.py
-          echo "Application syntax verified successfully."
+          echo "Python applications validated successfully."
 
-      # 6. Build Docker image
+      # 7. Build Docker image
       - name: Build Docker image
         run: |
           docker build -t tourism-package-prediction .
 
-      # 7. Complete pipeline
+      # 8. Complete pipeline
       - name: Pipeline completed
         run: |
           echo "Tourism Package Prediction MLOps pipeline completed successfully."
